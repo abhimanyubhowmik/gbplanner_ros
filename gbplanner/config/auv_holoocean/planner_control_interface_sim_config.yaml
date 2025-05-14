@@ -1,0 +1,40 @@
+run_mode: kSim
+trigger_mode: kManual
+robot_type: kAerial 
+output_type: kTopic
+init_motion_enable: false
+planner_trigger_lead_time: 0.6  # Increased for underwater environment
+smooth_heading_enable: false
+init_motion:
+  z_takeoff: 1.0  # Reduced for underwater environment
+  z_drop: 1.0     # Reduced for underwater environment
+  x_forward: 15.0  # Reduced for underwater environment
+
+# Group related parameters to be shared between nodes.
+RobotDynamics:
+  v_max: 0.5      # Reduced for underwater environment
+  v_init_max: 0.3 # Reduced for underwater environment
+  v_homing_max: 0.4 # Reduced for underwater environment
+  yaw_rate_max: 0.1 # Reduced for underwater environment
+  dt: 3.0         # Increased for underwater environment
+
+# # Specific parameters for the HoveringAUV
+# AUVParams:
+#   depth_control_mode: true  # Enable depth control for underwater vehicle
+#   hover_depth: 1.0         # Default hover depth
+#   depth_tolerance: 0.2     # Depth tolerance
+#   stabilization_time: 2.0  # Time to stabilize after major movements
+
+# # Controller parameters
+# Controller:
+#   position_gain: 0.5       # Position control gain
+#   orientation_gain: 0.3    # Orientation control gain
+#   linear_drag: 0.8         # Linear drag coefficient for underwater
+#   angular_drag: 0.6        # Angular drag coefficient for underwater
+
+# # Path following parameters
+# PathFollowing:
+#   lookahead_distance: 0.8  # Distance to look ahead on path
+#   goal_radius: 0.3         # Radius to consider goal reached
+#   path_completion_threshold: 0.9  # Percentage of path to consider complete
+#   replan_threshold: 0.8    # Threshold to trigger replanning
