@@ -27,7 +27,7 @@ SensorParams:
     max_range:      85.0
     center_offset:  [0.0, 0.0, 0.0]
     rotations:      [0.0, 0.0, 0.0]
-    fov:            [rad(1.3962634), rad(1.0471975)]
+    fov:            [rad(1.8962634), rad(1.8471975)]
     resolution:     [rad(5.0*pi/180), rad(5.0*pi/180)]
     frontier_percentage_threshold: 0.04
 #-------------------------------------------------------------------------------
