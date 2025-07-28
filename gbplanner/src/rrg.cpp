@@ -5602,12 +5602,14 @@ void Rrg::generateGridSamples(std::vector<int> &viewpoint_ids) {
     }
     double inspection_distance = planning_params_.inspection_target_viewing_range;
     if (planning_params_.use_voxel_confidence_for_inspection_distance && found_conf) {
-      inspection_distance *= normalized_confidence;
+      // Linear mapping: confidence [0,1] -> distance [min_inspection_distance, inspection_target_viewing_range]
+      inspection_distance = planning_params_.min_inspection_distance + 
+                           normalized_confidence * (planning_params_.inspection_target_viewing_range - planning_params_.min_inspection_distance);
     }
-          // Clamp inspection_distance to be at least the configured minimum
-      if (inspection_distance < planning_params_.min_inspection_distance) {
-          inspection_distance = planning_params_.min_inspection_distance;
-      }
+    // Clamp inspection_distance to be at least the configured minimum
+    if (inspection_distance < planning_params_.min_inspection_distance) {
+        inspection_distance = planning_params_.min_inspection_distance;
+    }
     std_msgs::Float32 dist_msg;
     dist_msg.data = inspection_distance;
     inspection_distance_pub_.publish(dist_msg);
