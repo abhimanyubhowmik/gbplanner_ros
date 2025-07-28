@@ -4,6 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include <pcl/common/transforms.h>
 #include <tf/transform_listener.h>
+#include <gbplanner/QueryVoxelConfidence.h>
+#include <std_msgs/Float32.h>
 
 #define SQ(x) (x * x)
 
@@ -17,6 +19,8 @@ Rrg::Rrg(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private)
   adaptive_obb_ = new AdaptiveObb(map_manager_);
 
   initializeAttributes();
+
+  voxel_confidence_client_ = nh_.serviceClient<gbplanner::QueryVoxelConfidence>("/query_voxel_confidence");
 }
 
 Rrg::Rrg(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
@@ -25,6 +29,8 @@ Rrg::Rrg(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
   adaptive_obb_ = new AdaptiveObb(map_manager_);
 
   initializeAttributes();
+
+  voxel_confidence_client_ = nh_.serviceClient<gbplanner::QueryVoxelConfidence>("/query_voxel_confidence");
 }
 
 void Rrg::initializeAttributes() {
@@ -77,6 +83,7 @@ void Rrg::initializeAttributes() {
   path_pub_ =
       nh_.advertise<nav_msgs::Path>("/gbplanner_path", 10);
   //
+  inspection_distance_pub_ = nh_.advertise<std_msgs::Float32>("inspection_distance", 10);
   global_graph_update_timer_ =
       nh_.createTimer(ros::Duration(kGlobalGraphUpdateTimerPeriod),
                       &Rrg::expandGlobalGraphTimerCallback, this);
@@ -573,7 +580,7 @@ ProjectedEdgeStatus Rrg::getProjectedEdgeStatus(
   double edge_incl = std::atan2(std::abs(ray(2)), std::abs(ray.head(2).norm()));
   if (edge_incl > max_inclination) {
     return ProjectedEdgeStatus::kSteep;
-  }
+  } 
 
   double ray_len = ray.norm();
   Eigen::Vector3d ray_normed = ray / ray_len;
@@ -5048,7 +5055,7 @@ bool Rrg::improveFreePath(const std::vector<geometry_msgs::Pose>& path_orig,
     if (relaxed)
       safety_extension(1) *= planning_params_.relaxed_corridor_multiplier;
     Eigen::Vector3d local_bbx(2 * (radius + safety_extension[0]),
-                              2 * safety_extension[1], 2 * safety_extension[2]);
+                               2 * safety_extension[1], 2 * safety_extension[2]);
     std::vector<Eigen::Vector3d> occupied_voxels;
     std::vector<Eigen::Vector3d> free_voxels;
     map_manager_->extractLocalMapAlongAxis(p_center, p_dir, local_bbx,
@@ -5585,7 +5592,28 @@ void Rrg::generateGridSamples(std::vector<int> &viewpoint_ids) {
     }
     // dir.z() = 0.0;
     // std::cout << "sample before: " << sample.first.transpose();
-    sample.first -= dir.normalized() * (planning_params_.inspection_target_viewing_range - sample.second);
+    float normalized_confidence = 1.0f;
+    bool found_conf = false;
+    if (planning_params_.use_voxel_confidence_for_inspection_distance) {
+      queryVoxelConfidence(sample.first, normalized_confidence, found_conf);
+      std::cout << "[VOXEL CONFIDENCE] Point: " << sample.first.transpose()
+                << " | Confidence: " << normalized_confidence
+                << " | Found: " << found_conf << std::endl;
+    }
+    double inspection_distance = planning_params_.inspection_target_viewing_range;
+    if (planning_params_.use_voxel_confidence_for_inspection_distance && found_conf) {
+      inspection_distance *= normalized_confidence;
+    }
+          // Clamp inspection_distance to be at least the configured minimum
+      if (inspection_distance < planning_params_.min_inspection_distance) {
+          inspection_distance = planning_params_.min_inspection_distance;
+      }
+    std_msgs::Float32 dist_msg;
+    dist_msg.data = inspection_distance;
+    inspection_distance_pub_.publish(dist_msg);
+    std::cout << "[INSPECTION DISTANCE] For point: " << sample.first.transpose()
+              << " | Inspection distance: " << inspection_distance << std::endl;
+    sample.first -= dir.normalized() * (inspection_distance - sample.second);
     new_state.head(3) = sample.first;
     new_state(3) = std::atan2(dir.y(), dir.x()); /* &*& */
     new_state(4) = std::atan2(-dir.z(), dir.head(2).norm());
@@ -7051,8 +7079,7 @@ std::vector<geometry_msgs::Pose> Rrg::getOpeningTraversalPath(OpeningTraversalMo
     }
   }
 
-  if(mode == OpeningTraversalMode::kPathCheck)
-  {
+  if(mode == OpeningTraversalMode::kPathCheck) {
     if(opening_still_exists) 
     {
       status = OpeningTraversalStatus::OK;
@@ -8083,8 +8110,8 @@ std::vector<geometry_msgs::Pose> Rrg::searchPathToPassGate() {
     tf::TransformListener listener;
     try {
       listener.waitForTransform(darpa_gate_params_.world_frame_id,
-                                darpa_gate_params_.gate_center_frame_id,
-                                ros::Time(0), ros::Duration(1.0));
+                               darpa_gate_params_.gate_center_frame_id,
+                               ros::Time(0), ros::Duration(1.0));
       listener.lookupTransform(darpa_gate_params_.world_frame_id,
                                darpa_gate_params_.gate_center_frame_id,
                                ros::Time(0), tfW2G);
@@ -8293,4 +8320,18 @@ bool RobotStateHistory::getNearestStateInRange(const StateVec* state,
   return true;
 }
 
-// }  // namespace explorer
+bool Rrg::queryVoxelConfidence(const Eigen::Vector3d& point, float& normalized_confidence, bool& found) {
+  gbplanner::QueryVoxelConfidence srv;
+  srv.request.query_point.x = point.x();
+  srv.request.query_point.y = point.y();
+  srv.request.query_point.z = point.z();
+  if (voxel_confidence_client_.call(srv)) {
+    normalized_confidence = srv.response.normalized_confidence;
+    found = srv.response.found;
+    return true;
+  } else {
+    found = false;
+    normalized_confidence = 1.0f;
+    return false;
+  }
+}

@@ -361,6 +361,8 @@ struct PlanningParams {
   bool allow_sudden_dir_change;
   bool select_closest_frontier;
   int max_num_low_gain_iters;
+  bool use_voxel_confidence_for_inspection_distance;
+  double min_inspection_distance;
 
   bool loadParams(std::string ns);
   void setPlanningMode(PlanningModeType pmode);

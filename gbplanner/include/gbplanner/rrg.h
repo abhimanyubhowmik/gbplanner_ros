@@ -54,7 +54,8 @@
 
 #include <ros/package.h>
 
-// #include "opening_detector/opening_detector.hpp"
+#include <geometry_msgs/Point.h>
+#include <gbplanner/QueryVoxelConfidence.h>
 // Publish all gbplanner rviz topics or not.
 #define FULL_PLANNER_VIZ 1
 
@@ -383,6 +384,7 @@ class Rrg {
   ros::Publisher pci_reset_pub_;
   ros::Publisher local_free_map_pub_;
   ros::Publisher path_pub_;
+  ros::Publisher inspection_distance_pub_;
 
   ros::Subscriber semantics_subscriber_;
   ros::Subscriber stop_srv_subscriber_;
@@ -397,6 +399,9 @@ class Rrg {
   ros::ServiceServer approve_passing_srv_;
   ros::ServiceServer reset_map_srv_;
   ros::ServiceServer query_srv_;
+  ros::ServiceClient voxel_confidence_client_;
+
+  bool queryVoxelConfidence(const Eigen::Vector3d& point, float& normalized_confidence, bool& found);
 
   bool resetTimerCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
   bool getOpeningPathCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);

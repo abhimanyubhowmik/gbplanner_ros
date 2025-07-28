@@ -1365,6 +1365,18 @@ bool PlanningParams::loadParams(std::string ns) {
     ROSPARAM_WARN(param_name, max_num_low_gain_iters);
   }
 
+  param_name = ns + "/use_voxel_confidence_for_inspection_distance";
+  if (!ros::param::get(param_name, use_voxel_confidence_for_inspection_distance)) {
+    use_voxel_confidence_for_inspection_distance = false;
+    ROSPARAM_WARN(param_name, "false");
+  }
+
+  param_name = ns + "/min_inspection_distance";
+  if (!ros::param::get(param_name, min_inspection_distance)) {
+    min_inspection_distance = 0.5;
+    ROSPARAM_WARN(param_name, min_inspection_distance);
+  }
+
   
   std::vector<double> param_val;
 

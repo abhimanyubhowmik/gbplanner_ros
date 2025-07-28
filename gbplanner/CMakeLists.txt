@@ -3,12 +3,23 @@ project(gbplanner)
 
 add_definitions(-std=c++17 -Wall -Wno-sign-compare -Wno-catch-value -Wno-switch -Wno-maybe-uninitialized -Werror=return-type)
 
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  geometry_msgs
+  message_generation
+)
 find_package(catkin_simple REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(adaptive_obb REQUIRED)
 
+# Call catkin_simple - it will handle service files automatically
 catkin_simple(ALL_DEPS_REQUIRED)
+
+catkin_package(
+  CATKIN_DEPENDS roscpp std_msgs geometry_msgs message_runtime
+)
 
 include_directories(
   ${Boost_INCLUDE_DIRS}
@@ -30,4 +41,3 @@ target_link_libraries(gbplanner_node ${PROJECT_NAME} ${planner_common_LIBRARIES}
 
 cs_install()
 cs_export(LIBRARIES)
-
