@@ -41,9 +41,14 @@ class RandomSamplerBase {
   double getZOffset();  
   void reset();
   double generate(double current_val, double devisor = 1);
+  void setSeed(unsigned int seed);  // Add method to set fixed seed
+  unsigned int getFixedSeed() const { return fixed_seed_; }  // Getter for fixed seed
+  bool isUsingFixedSeed() const { return use_fixed_seed_; }  // Getter for fixed seed flag
 
  private:
   std::mt19937 generator_;
+  unsigned int fixed_seed_;  // Add fixed seed member
+  bool use_fixed_seed_;     // Flag to use fixed seed instead of random device
   RandomDistributionType pdf_type_;
   RandomDistributionType init_pdf_type_;
   SampleModeType sample_mode_;
@@ -81,6 +86,7 @@ class RandomSampler {
   int getInvalidSamplesNum();
   void reset();
   void generate(StateVec& current_state, StateVec& sample_state);
+  void setSeed(unsigned int seed);  // Add method to set fixed seed
 
   void pushSample(StateVec& state, bool valid);
   std::vector<StateVec>* getSamples(bool valid) {

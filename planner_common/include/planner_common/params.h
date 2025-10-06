@@ -364,6 +364,9 @@ struct PlanningParams {
   bool use_voxel_confidence_for_inspection_distance;
   double min_inspection_distance;
 
+  // Seed for reproducible experiments (0 = use random seed, >0 = use fixed seed)
+  int random_seed;
+
   bool loadParams(std::string ns);
   void setPlanningMode(PlanningModeType pmode);
 };

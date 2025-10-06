@@ -3283,6 +3283,15 @@ bool Rrg::loadParams(bool shared_params) {
     ROS_WARN_COND(global_verbosity >= Verbosity::WARN, "No setting for adaptive exploration mode.");
   }
 
+  // Set fixed seed for reproducible experiments if specified
+  if (planning_params_.random_seed > 0) {
+    random_sampler_.setSeed(static_cast<unsigned int>(planning_params_.random_seed));
+    random_sampler_to_search_.setSeed(static_cast<unsigned int>(planning_params_.random_seed + 1000));  // Different seed for search
+    random_sampler_adaptive_.setSeed(static_cast<unsigned int>(planning_params_.random_seed + 2000));   // Different seed for adaptive
+    ROS_INFO_COND(global_verbosity >= Verbosity::INFO, 
+                  "Using fixed seed: %d for reproducible experiments", planning_params_.random_seed);
+  }
+
   if (!robot_dynamics_params_.loadParams(ns + "/RobotDynamics")) return false;
 
   if (!geofence_manager_->loadParams(ns + "/GeofenceParams")) return false;
@@ -6587,7 +6596,19 @@ void Rrg::setState(StateVec& state) {
     ROS_WARN_COND(global_verbosity >= Verbosity::WARN, "Received the first odometry, reset the map");
     map_manager_->resetMap();
   }
-  current_state_ = state;
+  
+  // Normalize orientation for reproducible experiments when using fixed seed
+  StateVec normalized_state = state;
+  if (planning_params_.random_seed > 0) {
+    // Normalize heading/yaw to a fixed value (0.0) for reproducible experiments
+    // This ensures that the robot's orientation doesn't affect the sampling process
+    normalized_state[3] = 0.0;  // Set heading/yaw to 0.0
+    normalized_state[4] = 0.0;  // Set pitch to 0.0
+    ROS_INFO_COND(global_verbosity >= Verbosity::INFO, 
+                  "Normalizing robot orientation to [0.0, 0.0] for reproducible experiments");
+  }
+  
+  current_state_ = normalized_state;
   odometry_ready = true;
   // Clear free space based on current voxel size.
   if (planner_trigger_count_ < planning_params_.augment_free_voxels_time) {
@@ -6603,7 +6624,7 @@ void Rrg::setState(StateVec& state) {
     }
     robot_backtracking_queue_.emplace(current_state_);
   } else {
-    robot_backtracking_queue_.emplace(state);
+    robot_backtracking_queue_.emplace(normalized_state);
   }
 }
 
@@ -7957,8 +7978,8 @@ void Rrg::addGeofenceAreas(const geometry_msgs::PolygonStamped& polygon_msgs) {
                                   polygon_msgs.header.frame_id, ros::Time(0),
                                   ros::Duration(0.1));  // this should be fast.
         listener.lookupTransform(planning_params_.global_frame_id,
-                                 polygon_msgs.header.frame_id, ros::Time(0),
-                                 tf_to_global);
+                                  polygon_msgs.header.frame_id, ros::Time(0),
+                                  tf_to_global);
         for (int i = 0; i < polygon_msgs.polygon.points.size(); ++i) {
           tf::Vector3 poly_in_global;
           poly_in_global.setValue(polygon_msgs.polygon.points[i].x,

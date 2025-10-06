@@ -5,6 +5,8 @@ RandomSamplerBase::RandomSamplerBase() {
   std_val_ = 0.0;
   min_val_ = 0.0;
   max_val_ = 0.0;
+  fixed_seed_ = 0;
+  use_fixed_seed_ = false;
 }
 
 RandomSamplerBase::~RandomSamplerBase() {}
@@ -155,9 +157,18 @@ void RandomSamplerBase::setPDF(RandomSamplerBase::RandomDistributionType pdf_typ
   pdf_type_ = pdf_type;
 }
 
+void RandomSamplerBase::setSeed(unsigned int seed) {
+  fixed_seed_ = seed;
+  use_fixed_seed_ = true;
+}
+
 void RandomSamplerBase::reset() {
-  std::random_device rd;
-  generator_.seed(rd());
+  if (use_fixed_seed_) {
+    generator_.seed(fixed_seed_);
+  } else {
+    std::random_device rd;
+    generator_.seed(rd());
+  }
   if (pdf_type_ == RandomDistributionType::kUniform) {
     uniform_pdf_.reset(new std::uniform_real_distribution<>(min_val_, max_val_));
   } else if (pdf_type_ == RandomDistributionType::kNormal) {
@@ -313,6 +324,13 @@ void RandomSampler::setPDF(RandomSamplerBase::RandomDistributionType pdf_type, i
   random_sampler_base_[axis].reset();
 }
 
+void RandomSampler::setSeed(unsigned int seed) {
+  generator_.seed(seed);
+  for (int i = 0; i < 5; ++i) {
+    random_sampler_base_[i].setSeed(seed + i);  // Use different seeds for each axis
+  }
+}
+
 std::vector<RandomSamplerBase::RandomDistributionType> RandomSampler::getInitPDF(){
   // It is applicable only in the case of kNormalUniform
   std::vector<RandomSamplerBase::RandomDistributionType> tmp;
@@ -335,8 +353,14 @@ int RandomSampler::getInvalidSamplesNum(){
 }
 
 void RandomSampler::RandomSampler::reset() {
-  std::random_device rd;
-  generator_.seed(rd());
+  // Use fixed seed if set, otherwise use random device
+  if (random_sampler_base_[0].isUsingFixedSeed()) {
+    // Use the seed from the first sampler base
+    generator_.seed(random_sampler_base_[0].getFixedSeed());
+  } else {
+    std::random_device rd;
+    generator_.seed(rd());
+  }
   chi_squared_.reset(new std::chi_squared_distribution<>(1));
   for (int i = 0; i < 5; ++i) {
     random_sampler_base_[i].reset();

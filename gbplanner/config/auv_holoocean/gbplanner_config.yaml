@@ -280,19 +280,19 @@ PlanningParams:
   min_coverage_percentage: 0.9
   inspection_xy_spacing: 1.0 # 1.5
   inspection_z_spacing: 0.5 # 2.0
-  inspection_thr_esdf_dist: 0.75 # 1.5
-  inspection_target_viewing_range: 2.5 #1.5 # 2.5
-  use_voxel_confidence_for_inspection_distance: true
+  inspection_thr_esdf_dist: 0.9 # 1.5
+  inspection_target_viewing_range: 2.0 #1.5 # 2.5
+  use_voxel_confidence_for_inspection_distance: false
   min_inspection_distance: 0.8 # Minimum inspection distance when using voxel confidence
   inspection_graph_vertices: 500
   max_inspection_vertices: 100
   #: 10
 
   max_surface_distance: 1.5
-  limit_vertices_to_surface: false
+  limit_vertices_to_surface: true
   min_occ_surface: 0.0
 
-  max_exploration_iterations: 10
+  max_exploration_iterations: 5
   exploration_only: false
   # compartment_centers: [2.0, 0.25, 2.0, 6.0, 0.25, 2.0, 10.0, 0.25, 2.0, 14.0, 0.25, 2.0]
   # compartment_dimensions:
@@ -333,6 +333,9 @@ PlanningParams:
   # annotate_map_with_camera = true
 
   geofence_checking_enable: true
+
+  # Seed for reproducible experiments (0 = use random seed, >0 = use fixed seed)
+  random_seed: 59
 
 AdaptiveObbParams:
   type: kPca

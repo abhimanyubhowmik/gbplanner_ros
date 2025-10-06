@@ -1404,7 +1404,11 @@ bool PlanningParams::loadParams(std::string ns) {
   param_name = ns + "/compartment_dimensions";
   compartment_dimensions.loadParams(param_name);
 
-  
+  param_name = ns + "/random_seed";
+  if (!ros::param::get(param_name, random_seed)) {
+    random_seed = 0;  // Default to random seed
+    ROSPARAM_WARN(param_name, "0 (random seed)");
+  }
 
   ROSPARAM_INFO("Done.");
   return true;
