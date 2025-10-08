@@ -1,14 +1,45 @@
-run_mode: kSim
+# run_mode: kReal
+# trigger_mode: kManual
+# robot_type: kAerial 
+# output_type: kTopic
+# init_motion_enable: false
+# planner_trigger_lead_time: 0.6  # Increased for underwater environment
+# smooth_heading_enable: false
+# init_motion:
+#   z_takeoff: 1.0   
+#   z_drop: 1.0      
+#   x_forward: 4.0   
+
+# # Group related parameters to be shared between nodes.
+# RobotDynamics:
+#   v_max: 0.5       
+#   v_init_max: 0.3  
+#   v_homing_max: 0.4  
+#   yaw_rate_max: 0.1  
+#   dt: 3.0         # Increased for underwater environment
+
+run_mode: kReal
 trigger_mode: kManual
-robot_type: kAerial 
+robot_type: kAerial
 output_type: kTopic
 init_motion_enable: false
-planner_trigger_lead_time: 0.6  # Increased for underwater environment
-smooth_heading_enable: false
+planner_trigger_lead_time: 0.1
+smooth_heading_enable: true
+path_end_dist_thr: 1.75
+path_end_yaw_thr: 0.4
+path_progression_dist_thr: 2.0
+path_progression_dist_thr_min: 1.75
+path_progression_pitch_thr: 0.4
+path_progression_yaw_thr: 3.14
+path_progression_yaw_thr_min: 3.14
+interpolate_traj: true
+use_time_from_start: true
+set_first_wp_speed: true
+reconnect_path: false
 init_motion:
-  z_takeoff: 1.0   
-  z_drop: 1.0      
-  x_forward: 4.0   
+  z_takeoff: 1.2
+  z_drop: 0.5
+  x_forward: 0.7
 
 # Group related parameters to be shared between nodes.
 RobotDynamics:

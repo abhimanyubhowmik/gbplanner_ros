@@ -21,8 +21,8 @@
   <!-- Remapping to use HoloOcean's topics -->
   <node pkg="gbplanner" type="gbplanner_node" name="gbplanner_node" output="screen" launch-prefix="$(arg launch_prefix)">
   
-  <env name="GLOG_v" value="1"/>
-  <env name="GLOG_logtostderr" value="1"/>
+  <!-- <env name="GLOG_v" value="1"/>
+  <env name="GLOG_logtostderr" value="1"/> -->
 
     <remap from="odometry" to="/odometry" />
     <remap from="pointcloud" to="/camera/depth/points" />
