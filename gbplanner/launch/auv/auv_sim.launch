@@ -25,11 +25,11 @@
   <env name="GLOG_logtostderr" value="1"/> -->
 
     <remap from="odometry" to="/odometry" />
-    <remap from="pointcloud" to="/camera/depth/points" />
-    <!-- <remap from="pointcloud" to="/raftstereo_node/points"/> -->
+    <!-- <remap from="pointcloud" to="/camera/depth/points" /> -->
+    <remap from="pointcloud" to="/raftstereo_node/points"/>
     <remap from="freespace_pointcloud" to="/camera/depth/freespace_points"/>
-    <remap from="confidence" to="/camera/depth/confidence"/>
-    <!-- <remap from="confidence" to="/raftstereo_node/confidence"/> -->
+    <!-- <remap from="confidence" to="/camera/depth/confidence"/> -->
+    <remap from="confidence" to="/raftstereo_node/confidence"/>
     <!-- <remap from="/voxblox_node/surface_pointcloud" to="/voxblox_node/surface_pointcloud" />
     <remap from="/voxblox_node/mesh" to="/voxblox_node/mesh" />
     <remap from="/voxblox_node/tsdf_map_out" to="/voxblox_node/tsdf_map_out" />
