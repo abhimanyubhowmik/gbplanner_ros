@@ -39,7 +39,7 @@ clear_sphere_for_planning: False
 clear_sphere_radius: 0.8
 
 # OVERLAP BETWEEN VERSIONS #
-use_const_weight: False
+use_const_weight: True
 use_weight_dropoff: True
 use_symmetric_weight_drop_off: False
 
@@ -48,3 +48,13 @@ clearing_ray_weight_factor: 0.01 #ANYmal: 0.01 #Flyab: 0.05 #0.05-1.0
 weight_ray_by_range: False
 min_ray_length_m: 0.5 #1.0
 occupancy_min_distance_voxel_size_factor: 1.0
+
+# Extended probabilistic TSDF integration parameters
+lambda_forgetting: 0.95
+rho: 0.5
+init_alpha: 1.0
+init_beta: 1.0
+observed_variance: 0.01
+imm_use_confidence_mixing: True
+imm_a1_fixed: 0.5
+imm_a2_fixed: 0.5
